@@ -1,0 +1,6 @@
+{
+  "name": "METRIC_LAB",
+  "description": "A high-precision performance nutrition and training dashboard for elite athletes.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": []
+}
