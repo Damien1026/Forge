@@ -447,6 +447,71 @@ import {
 import { zhCN } from 'date-fns/locale';
 
 
+const WaterInputModal = ({
+  onClose,
+  onComplete,
+}: {
+  onClose: () => void;
+  onComplete: (amount: number) => void;
+}) => {
+  const [amount, setAmount] = useState('');
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="w-full max-w-xs bg-surface rounded-3xl overflow-hidden relative z-10 shadow-2xl"
+      >
+        <div className="p-5 flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <Droplets className="w-6 h-6 text-primary" />
+          </div>
+          <h3 className="text-sm font-black text-on-surface uppercase tracking-wider mb-4">补充水分 (ml)</h3>
+          
+          <input 
+            type="number"
+            inputMode="numeric"
+            autoFocus
+            placeholder="例如: 250"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-full text-center text-3xl font-black text-on-surface bg-transparent border-b-2 border-surface-container-highest focus:border-primary focus:outline-none pb-2 mb-6"
+          />
+
+          <div className="flex gap-3 w-full">
+            <button
+              onClick={onClose}
+              className="flex-1 py-3 rounded-xl bg-surface-container text-on-surface text-xs font-black uppercase tracking-wider transition-colors hover:bg-surface-container-high"
+            >
+              取消
+            </button>
+            <button
+              onClick={() => {
+                const val = parseInt(amount);
+                if (!isNaN(val) && val > 0) {
+                  onComplete(val);
+                }
+              }}
+              className="flex-1 py-3 rounded-xl bg-primary text-on-primary text-xs font-black uppercase tracking-wider transition-all hover:bg-primary/90 active:scale-95"
+            >
+              确认
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 const CalendarModal = ({ 
   selectedDate, 
   onSelect, 
@@ -1173,6 +1238,8 @@ const NutritionDashboard = () => {
   const [myFoods, setMyFoods] = useState<Food[]>([]);
   const [frequentlyUsed, setFrequentlyUsed] = useState<Food[]>([]);
   const [isAddingCustomFood, setIsAddingCustomFood] = useState(false);
+  const [waterIntake, setWaterIntake] = useState(1200); // Initialize with 1.2L (1200ml)
+  const [isWaterInputOpen, setIsWaterInputOpen] = useState(false);
 
   const handleStartLogging = (mealTemplate: Meal) => {
     setActiveLoggingMeal(mealTemplate);
@@ -1291,6 +1358,15 @@ const NutritionDashboard = () => {
               onClose={() => setIsDatePickerOpen(false)}
             />
           )}
+          {isWaterInputOpen && (
+            <WaterInputModal
+              onClose={() => setIsWaterInputOpen(false)}
+              onComplete={(amount) => {
+                setWaterIntake(prev => prev + amount);
+                setIsWaterInputOpen(false);
+              }}
+            />
+          )}
         </AnimatePresence>
         <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           {days.map((day, idx) => (
@@ -1395,10 +1471,13 @@ const NutritionDashboard = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black uppercase text-on-surface">饮水量</span>
-                  <span className="text-[9px] text-on-surface-variant font-bold opacity-50">1.2L / 3.0L</span>
+                  <span className="text-[9px] text-on-surface-variant font-bold opacity-50">{(waterIntake / 1000).toFixed(1)}L / 3.0L</span>
                 </div>
               </div>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-primary-container active:scale-95 transition-all shadow-lg shadow-primary/20">
+              <button 
+                onClick={() => setIsWaterInputOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-primary-container active:scale-95 transition-all shadow-lg shadow-primary/20"
+              >
                 <Plus className="w-3 h-3" /> 补充
               </button>
             </div>
